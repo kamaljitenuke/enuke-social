@@ -1,0 +1,119 @@
+<?php
+
+//configuration file
+$config = \Config::get("socialogin::config");
+
+Route::get('/facebook', function()
+{
+    return Redirect::to(Socialogin::loginUrl());
+});
+
+//google response
+Route::get('/gresponse', function()
+{
+    $google = new Enuke\Socialogin\Google;
+    $data = $google->get_data();
+    if ( empty($data) ) return Redirect::to('/')->with('message', 'There was an error');
+    $user = User::whereOauth_uid($data['id'])->first();
+    if (empty($user)) {
+        $user = new User;
+        $user->oauth_uid = $data['id'];
+        $user->oauth_provider = 'Google';
+        $user->name = $data['name'];
+        $user->email = $data['email'];
+        $user->photo = $data['picture'];
+        
+        $user->save();
+    } 
+      
+    Auth::login($user);
+    return Redirect::to('/')->with('message', 'You are successfully login!!'); 
+});
+
+//twitter response
+Route::get($config['twitter']['callback_url'], function() { 
+   $twitter = new Enuke\Socialogin\Twitter;
+   $data = $twitter->get_return();
+   
+   if ( empty($data) ) return Redirect::to('/')->with('message', 'There was an error');
+   
+   $user = User::whereOauth_uid($data->id)->first();
+ 
+   if (empty($user)) {
+        $user = new User;
+        $user->oauth_uid = $data->id;
+        $user->oauth_provider = 'Twitter';
+        $user->name = $data->screen_name;
+        $user->email = '';
+        $user->photo = $data->profile_image_url_https;
+        
+        $user->save();
+    } 
+      
+        Auth::login($user);
+        return Redirect::to('/')->with('message', 'You are successfully login!!'); 
+  });
+  
+  //facebook response
+Route::get('/callback', function() {
+   
+    $code = Input::get('code');
+    if (strlen($code) == 0) return Redirect::to('/')->with('message', 'There was an error communicating with Facebook');
+
+    $uid = Socialogin::getUser();
+
+    if ($uid == 0) return Redirect::to('/')->with('message', 'There was an error');
+
+    $me = Socialogin::api('/me');
+
+    $user = User::whereOauth_uid($me['id'])->first();
+     
+  if (empty($user)) {
+        $user = new User;
+        $user->oauth_uid = $me['id'];
+        $user->oauth_provider = 'Facebook';
+        $user->name = $me['first_name'].' '.$me['last_name'];
+        $user->email = $me['email'];
+        $user->photo = 'https://graph.facebook.com/'.$me['username'].'/picture?type=large';
+        $user->save();
+    } 
+
+    Auth::login($user);
+
+    return Redirect::to('/')->with('message', 'Logged in with Facebook');
+});
+
+Route::get('/login', function() { 
+    
+    if($_GET['type'] == 'facebook') {
+        return Redirect::to(Socialogin::loginUrl());
+    } else if ($_GET['type'] == 'twitter') {
+        $twitter = new Enuke\Socialogin\Twitter;
+        $check_connection = $twitter->login(); 
+        if ( $check_connection ){
+           return Redirect::to($check_connection);
+        } else {
+            die('Something Went Wrong');
+        }
+    } elseif ($_GET['type'] == 'google'){
+        $google = new Enuke\Socialogin\Google;
+        $url = $google->login();
+        return Redirect::to($url); 
+    } 
+});
+
+Route::get('logout', function() {
+    Auth::logout();
+    return Redirect::to('/');
+});
+
+Route::get('/', function()
+{
+    $data = array();
+
+    if (Auth::check()) {
+        $data = Auth::user();
+    }
+    return View::make('socialogin::users', array('data'=>$data));
+});
+

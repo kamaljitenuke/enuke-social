@@ -2,6 +2,7 @@
     "name": "enuke/socialogin",
     "description": "",
     "homepage": "https://github.com/kamaljitenuke/enuke-social",
+    "authors": [
         {
             "name": "enuke",
             "email": "kamaljit.laishram@enukesoftware.com"

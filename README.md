@@ -47,7 +47,7 @@ Package Installation:
 	//package configuration file
 	$config = \Config::get("socialogin::config");
 
-	//OAuth response
+	//OAuth response. Set your redirect url in vendor/enuke/socialogin/src/config/config.php
 	Route::get($config['redirect'], function() {
 
 		//get OAuth provider name store in session 

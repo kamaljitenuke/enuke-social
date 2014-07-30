@@ -1,5 +1,0 @@
-<?php 
-return array(
-         'consumer_key' => "7SRXELvgzRHz7uLugrcNcNj6Y",
-         'consumer_secret' => "rnkA9yPfiwCpm9YwCB7FxBqwasXW8iDQz5SENTUGD3aKj5Z9j8",
-       );

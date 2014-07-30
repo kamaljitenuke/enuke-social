@@ -20,7 +20,7 @@ class SocialoginServiceProvider extends ServiceProvider {
 	public function boot()
 	{
 		$this->package('enuke/socialogin');
-		include __DIR__.'/../../routes.php';
+		
 	}
 
 	/**
